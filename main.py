@@ -587,6 +587,7 @@ class MainWindow(QWidget):
         self.setStyleSheet("""
         font-family: Arial;
         font-size: 18px;
+        background-color: #F8FAE5;
         """)
 
         self.v_box = QVBoxLayout()
@@ -597,11 +598,22 @@ class MainWindow(QWidget):
         self.loading_label.setAlignment(Qt.AlignCenter)
         self.h_box1.addWidget(self.loading_label)
 
+        self.text_label = QLabel("Coming Soon", self)
+        self.text_label.setStyleSheet("""
+        font-size: 34px;
+        color: #76453B;
+        """)
+        self.text_label.setAlignment(Qt.AlignCenter)
+        self.h_box2.addWidget(self.text_label)
+
         movie = QMovie("Spinner-1s-203px.gif")
         self.loading_label.setMovie(movie)
         movie.start()
 
+        self.v_box.addStretch()
         self.v_box.addLayout(self.h_box1)
+        self.v_box.addLayout(self.h_box2)
+        self.v_box.addStretch()
         self.setLayout(self.v_box)
 
         self.show()

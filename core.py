@@ -17,7 +17,7 @@ class Core:
             id SERIAL,
             name VARCHAR(32) NOT NULL,
             email VARCHAR(50) NOT NULL UNIQUE,
-            password VARCHAR(15) NOT NULL,
+            password VARCHAR(32) NOT NULL,
             created_at TIMESTAMP
             )
             """
@@ -34,6 +34,7 @@ class Core:
                 """
             )
         except Exception as err:
+            print(err)
             return False
         self.connection.commit()
 
