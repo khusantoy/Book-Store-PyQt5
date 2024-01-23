@@ -35,6 +35,8 @@ class LoginWindow(QWidget):
         self.h_box8 = QHBoxLayout()
         self.h_box9 = QHBoxLayout()
 
+        self.core = Core()
+
         self.text_login = QLabel("Login", self)
         self.text_login.setAlignment(Qt.AlignCenter)
         self.text_login.setStyleSheet("""
@@ -73,6 +75,12 @@ class LoginWindow(QWidget):
         self.btn_signup.setFixedHeight(40)
         self.btn_signup.setText("Sign up")
 
+        #status
+        self.h_status = QHBoxLayout()
+        self.status = QLabel(self)
+        self.status.setAlignment(Qt.AlignCenter)
+        self.h_status.addWidget(self.status)
+
         self.h_box1.addWidget(self.text_login)
         self.h_box2.addWidget(self.text_email)
         self.h_box3.addWidget(self.input_email)
@@ -90,6 +98,7 @@ class LoginWindow(QWidget):
         self.v_box.addLayout(self.h_box4)
         self.v_box.addLayout(self.h_box5)
         self.v_box.addLayout(self.h_shower)
+        self.v_box.addLayout(self.h_status)
         self.v_box.addLayout(self.h_box6)
         self.v_box.addStretch()
         self.v_box.addLayout(self.h_box7)
@@ -106,9 +115,63 @@ class LoginWindow(QWidget):
 
         self.btn_signup.clicked.connect(self.open_signup)
         self.checkbox_password.stateChanged.connect(self.clickBox)
+        self.btn_login.clicked.connect(self.check)
 
 
         self.show()
+
+    def check(self):
+        email = self.input_email.text()
+        password = self.input_password.text()
+        res = self.core.check_email(email)
+
+        if not email and not password:
+            self.status.setStyleSheet("""
+                background-color: gray;
+                font-weight: bold;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                border-radius: 5px;
+                """)
+            self.status.setText("Fill empty spaces")
+            QTimer.singleShot(3000, self.remove_label)
+        else:
+            try:
+                if len(res[0][0]) > 0:
+                    if res[0][1] != password:
+                        self.status.setStyleSheet("""
+                            background-color: gray;
+                            font-weight: bold;
+                            padding-top: 10px;
+                            padding-bottom: 10px;
+                            border-radius: 5px;
+                            """)
+                        self.status.setText("Password is wrong")
+                    else:
+                        self.status.setStyleSheet("""
+                            background-color: gray;
+                            font-weight: bold;
+                            padding-top: 10px;
+                            padding-bottom: 10px;
+                            border-radius: 5px;
+                            """)
+                        self.status.setText("Logged in")
+                        self.win = MainWindow()
+                        self.close()
+
+                QTimer.singleShot(3000, self.remove_label)
+            except Exception:
+                self.status.setStyleSheet("""
+                    background-color: gray;
+                    font-weight: bold;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    border-radius: 5px;
+                    """)
+                self.status.setText("Email is wrong")
+
+            QTimer.singleShot(3000, self.remove_label)
+
 
     def clickBox(self, state):
         if state == Qt.Checked:
@@ -119,6 +182,10 @@ class LoginWindow(QWidget):
     def open_signup(self):
         self.close()
         self.win = SignupWindow()
+
+    def remove_label(self):
+        self.status.setStyleSheet("")
+        self.status.setText("")
 
 class SignupWindow(QWidget):
     def __init__(self):
@@ -261,16 +328,56 @@ class SignupWindow(QWidget):
         password = self.input_password.text()
         re_password = self.re_input_password.text()
 
-        if name and email and password and name[0].isalpha() and len(name) > 1 and self.email_checker(email) and len(password) >= 8 and re_password == password:
-            self.core.insert_data(name, email, password)
-            self.status.setStyleSheet("""
-                background-color: gray;
-                font-weight: bold;
-                padding-top: 10px;
-                padding-bottom: 10px;
-                border-radius: 5px;
-                """)
-            self.status.setText("Signed up")
+        if name and email and password and name[0].isalpha() and len(name) > 1 and self.email_checker(email) and len(password) >= 8 and re_password == password and self.space_checker(name) and self.space_checker(email) and self.space_checker(password):
+            result = self.core.insert_data(name, email, password)
+            if result == False:
+                self.status.setStyleSheet("""
+                    background-color: gray;
+                    font-weight: bold;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    border-radius: 5px;
+                    """)
+                self.status.setText("User already exists")
+            else:
+                self.status.setStyleSheet("""
+                                   background-color: gray;
+                                   font-weight: bold;
+                                   padding-top: 10px;
+                                   padding-bottom: 10px;
+                                   border-radius: 5px;
+                                   """)
+                self.status.setText("Signed up")
+                self.win = MainWindow()
+                self.close()
+        elif ' ' in name or ' ' in email or ' ' in password:
+            if ' ' in name:
+                self.status.setStyleSheet("""
+                    background-color: gray;
+                    font-weight: bold;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    border-radius: 5px;
+                    """)
+                self.status.setText("Write name without space")
+            elif ' ' in email:
+                self.status.setStyleSheet("""
+                    background-color: gray;
+                    font-weight: bold;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    border-radius: 5px;
+                    """)
+                self.status.setText("Write email without space")
+            elif ' ' in password or ' ' in re_password:
+                self.status.setStyleSheet("""
+                    background-color: gray;
+                    font-weight: bold;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    border-radius: 5px;
+                    """)
+                self.status.setText("Write password without space")
         elif name and not name[0].isalpha():
             self.status.setStyleSheet("""
                 background-color: gray;
@@ -332,9 +439,43 @@ class SignupWindow(QWidget):
                 return False
         else:
             return False
+
+    def space_checker(self, text):
+        if ' ' in text:
+            return False
+        else:
+            return True
+
     def remove_label(self):
         self.status.setStyleSheet("")
         self.status.setText("")
+
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setFixedSize(700, 700)
+        self.setStyleSheet("""
+        font-family: Arial;
+        font-size: 18px;
+        """)
+
+        self.v_box = QVBoxLayout()
+        self.h_box1 = QHBoxLayout()
+        self.h_box2 = QHBoxLayout()
+
+        self.loading_label = QLabel(self)
+        self.loading_label.setAlignment(Qt.AlignCenter)
+        self.h_box1.addWidget(self.loading_label)
+
+        movie = QMovie("Spinner-1s-203px.gif")
+        self.loading_label.setMovie(movie)
+        movie.start()
+
+        self.v_box.addLayout(self.h_box1)
+        self.setLayout(self.v_box)
+
+        self.show()
+
 
 app = QApplication([])
 win = LoginWindow()

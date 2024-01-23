@@ -1,5 +1,6 @@
 import mysql.connector
 
+
 class Core:
     def __init__(self):
         self.connection = mysql.connector.connect(
@@ -15,8 +16,9 @@ class Core:
             CREATE TABLE IF NOT EXISTS users (
             id SERIAL,
             name VARCHAR(32) NOT NULL,
-            email VARCHAR(50) NOT NULL,
-            password VARCHAR(15) NOT NULL 
+            email VARCHAR(50) NOT NULL UNIQUE,
+            password VARCHAR(15) NOT NULL,
+            created_at TIMESTAMP
             )
             """
         )
@@ -24,18 +26,29 @@ class Core:
 
     def insert_data(self, name, email, password):
         cursor = self.connection.cursor()
-        cursor.execute(
-            f"""
-            INSERT INTO users (name, email, password)
-            VALUES ("{name}", "{email}", "{password}")
-            """
-        )
+        try:
+            cursor.execute(
+                f"""
+                INSERT INTO users (name, email, password, created_at)
+                VALUES ("{name}", "{email}", "{password}", CURRENT_TIMESTAMP())
+                """
+            )
+        except Exception as err:
+            return False
         self.connection.commit()
 
     def get_users(self):
         cursor = self.connection.cursor()
         cursor.execute("""
         SELECT * FROM users 
+        """)
+        data = cursor.fetchall()
+        return data
+
+    def check_email(self, email):
+        cursor = self.connection.cursor()
+        cursor.execute(f"""
+        SELECT email, password FROM users WHERE email = '{email}'
         """)
         data = cursor.fetchall()
         return data
